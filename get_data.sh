@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --output=myfile.txt
 
 # Cores is number of cores per socket multiplied with the number of sockets
 cores_per_socket=$(lscpu | grep "Core(s) per socket" | grep -Eo '[0-9]+')
@@ -22,7 +21,7 @@ shell_pid=$$
 shell_mem_usage=$(ps -o rss= -p $shell_pid)
 
 # Or as
-shell_mem_uage=$(pmap $shell_pid | tail -n 1)
+shell_mem_usage=$(pmap $shell_pid | tail -n 1)
 
 
 # Print all the information gathered
