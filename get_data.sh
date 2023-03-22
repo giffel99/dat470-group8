@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Get number of cores either as
+num_cores=$(lscpu | grep "^CPU(s):" | awk '{print $2}')
+
+# or as
+
+num_cores=$("nproc")
+
+# Or actual cores could be (Core(s) per socket) x (Socket(s))?
+
+
+# Get the type of CPUs and clock frequency
+cpu_info=$(lscpu | grep -E "(Model name)")
+
+# Get disk usage and total available for the filesystems /data and /datainbackup
+disk_usage_data=$(df -h --output=used,size /data | tail -n 1)
+disk_usage_datainbackup=$(df -h --output=used,size /datainbackup | tail -n 1)
+
+# To access on 'markov' and 'shannon' -> /bayes_datainbackup/
+
+# Get memory usage of current login shell
+shell_pid=$$
+shell_mem_usage=$(ps -o rss= -p $shell_pid)
+
+# Or as
+shell_mem_uage=$(pmap $shell_pid | tail -n 1)
+
+
+# Print all the information gathered
+echo "1. Number of cores: $num_cores (with HyperThreading)"
+echo "2. CPU information: $cpu_info"
+echo "3. Disk usage (used, total):"
+echo "   /data: $disk_usage_data"
+echo "   /datainbackup: $disk_usage_datainbackup"
+echo "4. Memory usage of login shell: ${shell_mem_usage}KB"
+
