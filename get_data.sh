@@ -1,13 +1,11 @@
 #!/bin/bash
+#SBATCH --output=myfile.txt
 
-# Get number of cores either as
-num_cores=$(lscpu | grep "^CPU(s):" | awk '{print $2}')
+# Cores is number of cores per socket multiplied with the number of sockets
+cores_per_socket=$(lscpu | grep "Core(s) per socket" | grep -Eo '[0-9]+')
+sockets=$(lscpu | grep "Socket(s)" | grep -Eo '[0-9]+')
 
-# or as
-
-num_cores=$("nproc")
-
-# Or actual cores could be (Core(s) per socket) x (Socket(s))?
+num_cores=$((cores_per_socket*sockets))
 
 
 # Get the type of CPUs and clock frequency
