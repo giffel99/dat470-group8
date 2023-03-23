@@ -1,0 +1,17 @@
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+4.76837158203125e-06	4.162677526473999	1	10000000	7855053	3.14202	-0.00043
+-------
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+4.76837158203125e-06	3.3543643951416016	2	10000000	7852302	3.14092	0.00067
+-------
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+5.245208740234375e-06	1.6475944519042969	4	10000000	7855405	3.14216	-0.00057
+-------
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+5.9604644775390625e-06	1.075671672821045	8	10000000	7857525	3.14301	-0.00142
+-------
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+9.5367431640625e-06	0.6489095687866211	16	10000000	7853443	3.14138	0.00022
+-------
+Clocked_time_start	clocked_time_parallell	Num_workers	Steps	# Succ.	Pi est.	Error
+6.9141387939453125e-06	0.3207828998565674	32	10000000	7854189	3.14168	-0.00008

@@ -4,6 +4,7 @@ import multiprocessing
 import random
 import argparse
 from math import pi
+import time
 
 def sample_pi(n):
     """Perform n steps of the Monte Carlo simulation for estimating Pi/4
@@ -18,14 +19,23 @@ def sample_pi(n):
     return s
 
 def compute_pi(n,num_workers):
+    # Executed serially
+    serial_time = time.time()
+
     m = n//num_workers
+    time_parallell_start = time.time()
+    # Parallell part of the script.
     with multiprocessing.Pool(num_workers) as p:
         s = p.map(sample_pi, [m]*num_workers)
+    # Parallell part is complete
+    clocked_time_parallell = (time.time() - time_parallell_start)
     n_total = m*num_workers
     s_total = sum(s)
     pi_est = 4.0 * s_total / n_total
-    print('Steps\t# Succ.\tPi est.\tError')
-    print(f'{n_total:6d}\t{s_total:6d}\t{pi_est:1.5f}\t{pi-pi_est:1.5f}')
+
+    serial_time = (time.time() - serial_time - clocked_time_parallell)
+    print('Clocked_time_start\tclocked_time_parallell\tNum_workers\tSteps\t# Succ.\tPi est.\tError')
+    print(f'{serial_time}\t{clocked_time_parallell}\t{num_workers}\t{n_total:6d}\t{s_total:6d}\t{pi_est:1.5f}\t{pi-pi_est:1.5f}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = \
