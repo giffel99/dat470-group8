@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     k = ["1","2","4","8","16","32"]
-    measured_samples_per_second = [2462590.88292,3013478.24272,4921279.72281,8488604.93700,12229349.17888,12294340.31324]
+    #measured_samples_per_second = [2462590.88292,3013478.24272,4921279.72281,8488604.93700,12229349.17888,12294340.31324]
+    measured_samples_per_second = [2552645.05546,3257913.81806,6474116.31302,12269114.59902,13885550.17587,31880237.77120]
     proportion = 0.9985218 # The proportion of execution time that the part benefiting from improved resources originally occupied
     speedup = [1,2,4,8,16,32]
     

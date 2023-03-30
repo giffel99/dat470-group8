@@ -6,17 +6,22 @@ import argparse
 from math import pi
 import time
 
-def sample_pi(n,seed, queue):
+def sample_pi(seed, input_queue, output_queue):
     """Perform n steps of the Monte Carlo simulation for estimating Pi/4
     Returns the number of successes."""
     random.seed(seed)
-    s = 0
-    for i in range(n):
-        x = random.random()
-        y = random.random()
-        if x**2 + y**2 <= 1.0:
-            s += 1
-    queue.put(s)
+    while True:
+        m = input_queue.get()
+        if m is None:
+            break
+        
+        s = 0
+        for i in range(m):
+            x = random.random()
+            y = random.random()
+            if x**2 + y**2 <= 1.0:
+                s += 1
+        output_queue.put(s)
 
 def compute_pi(accuracy ,num_workers, seed):
 
@@ -25,21 +30,24 @@ def compute_pi(accuracy ,num_workers, seed):
     total_time = 0
     iterations = 0
 
+    input_queues = [multiprocessing.Queue() for _ in range(num_workers)]
+    output_queue = multiprocessing.Queue()
+
+    processes = [multiprocessing.Process(target=sample_pi, args=(seed + i, input_queues[i], output_queue)) for i in range(num_workers)]
+    
+    for process in processes:
+        process.start()
+
     while True:
-        queue = multiprocessing.Queue()
+        
         m = n // num_workers
 
         time_start = time.time()
 
-        processes = [multiprocessing.Process(target=sample_pi, args=(m, seed + i + iterations * num_workers, queue)) for i in range(num_workers)]
-        
-        for process in processes:
-            process.start()
+        for input_queue in input_queues:
+            input_queue.put(m)
 
-        s = [queue.get() for _ in range(num_workers)]
-
-        for process in processes:
-            process.join()
+        s = [output_queue.get() for _ in range(num_workers)]
         
         time_elapsed = time.time() - time_start
         total_time += time_elapsed
@@ -51,6 +59,12 @@ def compute_pi(accuracy ,num_workers, seed):
 
         if error <= accuracy:
             break
+    
+    for input_queue in input_queues:
+        input_queue.put(None)
+
+    for process in processes:
+        process.join()
 
     samples_per_second = n_total / total_time
     print(f'Accuracy: {accuracy:1.5f}, Workers: {num_workers}, Seed: {seed}, Pi Estimate: {pi_est:1.6f}, Error: {error:1.6f}, Samples/s: {samples_per_second:1.5f}')
