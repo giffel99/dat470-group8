@@ -8,6 +8,7 @@
 
 import logging
 import argparse
+import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
@@ -23,17 +24,24 @@ def generateData(n, c):
     return X
 
 
-def nearestCentroid(datum, centroids):
+def nearestCentroid(data, centroids, index, cluster_queue, cluster_sizes_queue):
     """computes the distance of the data vector to the centroids and returns 
     the closest one as an (index,distance) pair
     """
     # norm(a-b) is Euclidean distance, matrix - vector computes difference
     # for all rows of matrix
-    dist = np.linalg.norm(centroids - datum, axis=1)
-    return np.argmin(dist), np.min(dist)
+    cluster_sizes = np.zeros(len(centroids))
+    clusters = np.zeros(len(data))
+    for i in range(len(data)):
+            dist = np.linalg.norm(centroids - data[i], axis=1)
+            cluster= np.argmin(dist)
+            clusters[i] = cluster
+            cluster_sizes[cluster] += 1
+    cluster_queue.put((index, clusters))
+    cluster_sizes_queue.put(cluster_sizes)
 
 
-def kmeans(k, data, nr_iter = 100):
+def kmeans(k, data, args, nr_iter = 100):
     """computes k-means clustering by fitting k clusters into data
     a fixed number of iterations (nr_iter) is used
     you should modify this routine for making use of multiple threads
@@ -44,28 +52,33 @@ def kmeans(k, data, nr_iter = 100):
     centroids = data[np.random.choice(np.array(range(N)),size=k,replace=False)]
     logging.debug("Initial centroids\n", centroids)
 
-    N = len(data)
-
     # The cluster index: c[i] = j indicates that i-th datum is in j-th cluster
     c = np.zeros(N, dtype=int)
 
-    logging.info("Iteration\tVariation\tDelta Variation")
-    total_variation = 0.0
     for j in range(nr_iter):
         logging.debug("=== Iteration %d ===" % (j+1))
 
         # Assign data points to nearest centroid
-        variation = np.zeros(k)
-        cluster_sizes = np.zeros(k, dtype=int)        
-        for i in range(N):
-            cluster, dist = nearestCentroid(data[i],centroids)
-            c[i] = cluster
-            cluster_sizes[cluster] += 1
-            variation[cluster] += dist**2
-        delta_variation = -total_variation
-        total_variation = sum(variation) 
-        delta_variation += total_variation
-        logging.info("%3d\t\t%f\t%f" % (j, total_variation, delta_variation))
+
+        data_split = np.array_split(data,args.num_workers)
+        cluster_queue = mp.Queue()
+        dist_queue = mp.Queue()
+        cluster_sizes_queue = mp.Queue()
+
+        processes = [mp.Process(target=nearestCentroid, args=(data_split[i], centroids, i, cluster_queue, cluster_sizes_queue)) for i in range(args.num_workers)]        
+        
+        for process in processes:
+            process.start()
+
+        for process in processes:
+            process.join()
+
+        c = [cluster_queue.get() for _ in range(args.num_workers)]
+        cluster_sizes = [cluster_sizes_queue.get() for _ in range(args.num_workers)]
+        cluster_sizes = np.sum(cluster_sizes, axis=1)
+        sorted()
+
+
 
         # Recompute centroids
         centroids = np.zeros((k,2)) # This fixes the dimension to 2
@@ -77,7 +90,7 @@ def kmeans(k, data, nr_iter = 100):
         logging.debug(c)
         logging.debug(centroids)
     
-    return total_variation, c
+    return c
 
 
 def computeClustering(args):
@@ -91,12 +104,11 @@ def computeClustering(args):
     start_time = time.time()
     #
     # Modify kmeans code to use args.worker parallel threads
-    total_variation, assignment = kmeans(args.k_clusters, X, nr_iter = args.iterations)
+    assignment = kmeans(args.k_clusters, X, nr_iter = args.iterations)
     #
     #
     end_time = time.time()
     logging.info("Clustering complete in %3.2f [s]" % (end_time - start_time))
-    print(f"Total variation {total_variation}")
 
     if args.plot: # Assuming 2D data
         fig, axes = plt.subplots(nrows=1, ncols=1)
