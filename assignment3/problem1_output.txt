@@ -1,0 +1,10 @@
+# Generating 10000000 samples in 3 classes 
+# Jobs ran for 1 iterations
+# num_cores, time in seconds
+
+1, 230.33
+2, 145.85 
+4, 76.09
+8, 39.54
+16, 28.89
+32, 18.42

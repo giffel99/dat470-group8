@@ -24,7 +24,7 @@ def generateData(n, c):
     return X
 
 
-def nearestCentroid(data, centroids, index, cluster_queue, cluster_sizes_queue):
+def nearestCentroid(data, centroids):
     """computes the distance of the data vector to the centroids and returns 
     the closest one as an (index,distance) pair
     """
@@ -34,14 +34,21 @@ def nearestCentroid(data, centroids, index, cluster_queue, cluster_sizes_queue):
     clusters = np.zeros(len(data))
     for i in range(len(data)):
             dist = np.linalg.norm(centroids - data[i], axis=1)
-            cluster= np.argmin(dist)
-            clusters[i] = cluster
+            cluster = np.argmin(dist)
+            clusters[i] = int(cluster)
             cluster_sizes[cluster] += 1
-    cluster_queue.put((index, clusters))
-    cluster_sizes_queue.put(cluster_sizes)
+   
+
+    return (clusters, cluster_sizes)
+
+def get_mean_point(c_split, data_split, centroids):
+    for i in range(len(c_split)):
+        centroids[c_split[i]] += data_split[i]        
+    return centroids
 
 
-def kmeans(k, data, args, nr_iter = 100):
+
+def kmeans(k, data,num_workers, nr_iter = 100):
     """computes k-means clustering by fitting k clusters into data
     a fixed number of iterations (nr_iter) is used
     you should modify this routine for making use of multiple threads
@@ -53,37 +60,29 @@ def kmeans(k, data, args, nr_iter = 100):
     logging.debug("Initial centroids\n", centroids)
 
     # The cluster index: c[i] = j indicates that i-th datum is in j-th cluster
-    c = np.zeros(N, dtype=int)
 
     for j in range(nr_iter):
         logging.debug("=== Iteration %d ===" % (j+1))
 
         # Assign data points to nearest centroid
 
-        data_split = np.array_split(data,args.num_workers)
-        cluster_queue = mp.Queue()
-        dist_queue = mp.Queue()
-        cluster_sizes_queue = mp.Queue()
-
-        processes = [mp.Process(target=nearestCentroid, args=(data_split[i], centroids, i, cluster_queue, cluster_sizes_queue)) for i in range(args.num_workers)]        
-        
-        for process in processes:
-            process.start()
-
-        for process in processes:
-            process.join()
-
-        c = [cluster_queue.get() for _ in range(args.num_workers)]
-        cluster_sizes = [cluster_sizes_queue.get() for _ in range(args.num_workers)]
-        cluster_sizes = np.sum(cluster_sizes, axis=1)
-        sorted()
-
-
-
+        data_split = np.array_split(data,num_workers)
+        with mp.Pool(num_workers) as p:
+            result = p.starmap(nearestCentroid, [(data_split[i], centroids) for i in range(num_workers)]) 
+        c = []
+        cluster_sizes = np.zeros(len(centroids))
+        for ret_c,ret_c_s in result:
+            c = np.concatenate((c, ret_c))
+            cluster_sizes += ret_c_s
+        c = [int(item) for item in c]
         # Recompute centroids
         centroids = np.zeros((k,2)) # This fixes the dimension to 2
-        for i in range(N):
-            centroids[c[i]] += data[i]        
+        c_split = np.array_split(c,num_workers)
+
+        with mp.Pool(num_workers) as p: 
+            result = p.starmap(get_mean_point, [(c_split[i], data_split[i], centroids) for i in range(num_workers)])
+        for res in result:
+            centroids += res
         centroids = centroids / cluster_sizes.reshape(-1,1)
         
         logging.debug(cluster_sizes)
@@ -98,13 +97,13 @@ def computeClustering(args):
         logging.basicConfig(format='# %(message)s',level=logging.INFO)
     if args.debug: 
         logging.basicConfig(format='# %(message)s',level=logging.DEBUG)
-    
+    logging.info(args.workers)
     X = generateData(args.samples, args.classes)
 
     start_time = time.time()
     #
     # Modify kmeans code to use args.worker parallel threads
-    assignment = kmeans(args.k_clusters, X, nr_iter = args.iterations)
+    assignment = kmeans(args.k_clusters, X,args.workers, nr_iter = args.iterations)
     #
     #
     end_time = time.time()
