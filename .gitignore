@@ -1,2 +1,4 @@
 *.out
 *.error
+*.save
+__pycache__/
