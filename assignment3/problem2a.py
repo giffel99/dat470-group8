@@ -10,6 +10,17 @@ class SummaryStatistics(MRJob):
         value = float(value)
         yield None, (value, value ** 2, 1, value, value)
 
+    def combiner(self, _, values):
+        sum_, sum_sq, count, min_value, max_value = 0, 0, 0, float('inf'), float('-inf')
+        for value, value_sq, n, min_val, max_val in values:
+            sum_ += value
+            sum_sq += value_sq
+            count += n
+            min_value = min(min_value, min_val)
+            max_value = max(max_value, max_val)
+
+        yield None, (value, value**2, 1, value, value)
+
     def reducer(self, _, values):
         sum_, sum_sq, count, min_value, max_value = 0, 0, 0, float('inf'), float('-inf')
         for value, value_sq, n, min_val, max_val in values:
