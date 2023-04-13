@@ -39,9 +39,4 @@ class SummaryStatistics(MRJob):
 
 
 if __name__ == '__main__':
-    start_time = time.time()
     SummaryStatistics.run()
-    end_time = time.time()
-    total_time = end_time - start_time
-
-    print(f"Execution time: {total_time}")
