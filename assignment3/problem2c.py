@@ -1,9 +1,8 @@
 from mrjob.job import MRJob
-import math
-import time
 
 
 class Histogram(MRJob):
+
     def configure_args(self):
         super(Histogram, self).configure_args()
         self.add_passthru_arg('--min_value', type=float, help='Minimum value for data')
@@ -24,8 +23,8 @@ class Histogram(MRJob):
         bin_index = min(bin_index, self.num_bins - 1)  # In case value is equal to max_value
         yield self.bins[bin_index], 1
 
-    def reducer(self, bin_index, counts):
-        yield bin_index, sum(counts)
+    def reducer(self, bin_range, counts):
+        yield bin_range, sum(counts)
 
 
 if __name__ == '__main__':

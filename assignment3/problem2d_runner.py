@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-from problem2d import MedianOfGroup
+import sys
+from problem2d import ApproximatedMedian
 import time
 
 if __name__ == '__main__':
-    mr_job = MedianOfGroup(args=['-r','local','--num-cores','2','/data/2023-DAT470-DIT065/data-assignment-3-1M.dat'])
+    min_value = float(sys.argv[1])
+    max_value = float(sys.argv[2])
+    num_bins = int(sys.argv[3])
+
+    data = sys.argv[4]
+
+    mr_job = ApproximatedMedian(
+        args=['-r', 'local', '--num-cores', '4', '--min_value', str(min_value), '--max_value', str(max_value),
+              '--num_bins', str(num_bins), data])
+
     start = time.time()
     with mr_job.make_runner() as runner:
         runner.run()
         for line in runner.cat_output():
             print(line.decode('utf-8'), end='')
-
-        #print(next(runner.cat_output()).decode('utf-8'), end='')
-        
     end = time.time()
-    print(end-start)
-
+    print("Execution Time:", end - start)

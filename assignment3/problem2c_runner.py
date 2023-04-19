@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     mr_job = Histogram(
         args=['-r', 'local', '--num-cores', '4', '--min_value', str(min_value), '--max_value', str(max_value), data])
+
     start = time.time()
     with mr_job.make_runner() as runner:
         runner.run()
