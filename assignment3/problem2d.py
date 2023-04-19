@@ -5,14 +5,9 @@ import time
 class MedianOfGroup(MRJob):
 
     def mapper(self, _, line):
-        fields = line.strip().split('\t')
-        if len(fields) != 3:
-            print(f"Skipping bad line: {line}")
-            return  # Skip this line - doesn't have the correct format
+        id_, group, value = line.strip().split('\t')
+        value = float(value)
         
-        group = fields[1]
-        value = float(fields[2])
-
         yield group, value
     
     def reducer(self, group, values):
