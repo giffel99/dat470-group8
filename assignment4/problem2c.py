@@ -1,6 +1,6 @@
 import findspark
+
 findspark.init()
-import random
 from pyspark import SparkContext
 import argparse
 
@@ -10,15 +10,16 @@ def get_bin_index(value, min_value, max_value, num_bins):
     bin_index = int((value - min_value) // bin_size)
     return min(bin_index, num_bins - 1)
 
+
 def get_bin_range(bin_index, min_value, max_value, num_bins):
     bin_size = (max_value - min_value) / num_bins
     lower_bound = min_value + bin_index * bin_size
     upper_bound = lower_bound + bin_size
     return f"{lower_bound:.2f} - {upper_bound:.2f}"
 
-def main(data_path, min_value, max_value, num_bins):
 
-    sc = SparkContext(master = 'local[2]')
+def main(data_path, min_value, max_value, num_bins):
+    sc = SparkContext(master='local[2]')
 
     # Constructing an RDD from the data file 
     data = sc.textFile(data_path)
@@ -30,8 +31,8 @@ def main(data_path, min_value, max_value, num_bins):
     # ReduceByKey will add the counts together and sortByKey will ensure the output is in the right order. 
     histogram = (
         values.map(lambda value: (get_bin_index(value, min_value, max_value, num_bins), 1))
-              .reduceByKey(lambda a, b: a + b)
-              .sortByKey()
+        .reduceByKey(lambda a, b: a + b)
+        .sortByKey()
     )
 
     # Collect the bin counts for the histogram and printing it with value ranges for each bin
@@ -50,4 +51,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.data_path, args.min_value, args.max_value, args.num_bins)
-
