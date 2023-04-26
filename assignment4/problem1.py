@@ -1,33 +1,40 @@
 from mrjob.job import MRJob
 import math
 import time
-import numpy as np
 
-centroids_in = np.Array([[301, 127],
-                        [840, 506],
-                        [839, 542],
-                        [728, 394],
-                        [307, 522]])
+centroids_in = [[692, 835],
+[696, 417],
+[83, 797],
+[934, 918],
+[691, 204]]
 
 class SingleStepKMeans(MRJob):
-    def nearestCentroid(datum, centroids):
-    # norm(a-b) is Euclidean distance, matrix - vector computes difference
-    # for all rows of matrix
-        dist = np.linalg.norm(centroids - datum)
-        return np.argmin(dist)
 
     def mapper(self, _, line):
-        x, y = line.strip().split(' ')
+        data_x, data_y = line.strip().split(' ')
+        data_x = float(data_x)
+        data_y = float(data_y)
+        current_index = 0
+        min_dist = float('inf')
+        min_dist_index = 0
+        for centroid_x, centroid_y in centroids_in:
+            delta_x = centroid_x - data_x
+            delta_y = centroid_y - data_y
+            dist = (math.sqrt(delta_x ** 2 + delta_y ** 2))  
+            if dist < min_dist:
+                min_dist = dist
+                min_dist_index = current_index
+            current_index += 1
+        yield min_dist_index, (data_x, data_y, 1)
 
-        yield self.nearestCentroid((x,y), np.array(centroids_in)), (x, y, 1)
-
-    def reducer(self, _, values):
+    def reducer(self, index, values):
         x_total, y_total, count = 0, 0, 0
         for x, y, n in values:
             x_total += x
             y_total += y
             count += n
-        yield x_total/count, y_total/count
+            yield index, (x, y)
+        yield f"Centroid {index} has coordinates:" , (x_total/count, y_total/count)
 
 
 if __name__ == '__main__':
