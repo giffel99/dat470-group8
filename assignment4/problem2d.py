@@ -1,3 +1,7 @@
+import findspark
+
+findspark.init()
+
 from pyspark import SparkContext
 import argparse
 
