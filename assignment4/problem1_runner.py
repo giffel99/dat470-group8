@@ -3,7 +3,7 @@ from problem1 import SingleStepKMeans
 import time
 
 if __name__ == '__main__':
-    mr_job = SingleStepKMeans(args=['-r','local','--num-cores','2','data_in.txt'])
+    mr_job = SingleStepKMeans(args=['-r','local','--num-cores','4','data_in.txt'])
     start = time.time()
     with mr_job.make_runner() as runner:
         runner.run()
