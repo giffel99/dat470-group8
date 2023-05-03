@@ -19,7 +19,7 @@ def murmur3_32(data, seed=0):
     # Process the 4-byte chunks
     num_chunks = length // 4
     for i in range(num_chunks):
-        k = struct.unpack_from('<I', data, i * 4)[0]  # Using @ means that we use the native byte order
+        k = struct.unpack("@I", data[:4])[0]
         hash_value ^= scramble(k)
         hash_value = ((hash_value << 13) | (hash_value >> 19)) & 0xffffffff
         hash_value = (hash_value * 5 + 0xe6546b64) & 0xffffffff
@@ -34,19 +34,19 @@ def murmur3_32(data, seed=0):
     hash_value ^= scramble(k)
 
     hash_value ^= length
-    hash_value ^= hash_value >> 16
-    hash_value *= 0x85ebca6b
-    hash_value ^= hash_value >> 13
-    hash_value *= 0xc2b2ae35
-    hash_value ^= hash_value >> 16
+    hash_value ^= (hash_value >> 16) & 0xffffffff
+    hash_value = (hash_value * 0x85ebca6b) & 0xffffffff
+    hash_value ^= (hash_value >> 13) & 0xffffffff
+    hash_value = (hash_value * 0xc2b2ae35) & 0xffffffff
+    hash_value ^= (hash_value >> 16) & 0xffffffff
 
     return hash_value
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Murmur3_32')
-    parser.add_argument('--data', type=str, required=True, help='Data to be hashed')
-    parser.add_argument('--seed', type=lambda x: int(x, 0), default=0, help='Seed value (default: 0)')
+    parser.add_argument('--data', type=str, default="hello wo", help='Data to be hashed')
+    parser.add_argument('--seed', type=int, default=0, help='Seed value (default: 0)')
 
     args = parser.parse_args()
 
