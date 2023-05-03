@@ -3,12 +3,12 @@
 import sys
 import numpy as np
 from collections import defaultdict
-
+import argparse
 count = defaultdict(int)
 
 def get_memory_usage():
 
-    # Size of a pointer "key" which is 64 bits (= 8 bytes) and the 32-bit integer "count" storing the count of such keys (= 4 bytes).
+    # Size of a pointer "key" which is 64 bits (=8 bytes) and the 32-bit integer "count" storing the count of such keys (=4 bytes).
     key_size = 8
     count_size = 4
 
@@ -26,13 +26,20 @@ def get_memory_usage():
     return table_memory + string_memory
 
 if __name__ == '__main__':
-    for line in sys.stdin:
-        if 'q' == line.rstrip():
-            break
-        for word in line.strip().split():
-            count[word] += 1
+    parser = argparse.ArgumentParser(description="freq for trie")
+    parser.add_argument('--file_path', type=str)
+    args = parser.parse_args()
 
-    for k,v in count.items():
-        print(k, v)
+    if(args.file_path):
+            with open(args.file_path) as file:
+                for line in file:
+                    for word in line.strip().split():
+                        count[word] += 1
+    else:              
+        for line in sys.stdin:
+            if 'q' == line.rstrip():
+                break
+            for word in line.strip().split():
+                count[word] += 1
 
     print("Approximate memory usage:", get_memory_usage(), "bytes")
