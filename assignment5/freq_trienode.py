@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-
+import argparse
 '''
 För root trie:
 	1. Räkna storleken på children = 8(första pekaren till arrayn) + 8 * num_children
@@ -20,9 +20,6 @@ För root trie:
 '''
 
 def get_total_storage(trie):
-
-    if(trie._num_children == 0):
-        return  21
     children_size = 8 + 8 * trie._num_children
     child_chars_size = 8 + trie._num_children * 2
     num_children_size = 1
@@ -80,12 +77,24 @@ class TrieNode:
         return self._children[i][key[1:]]
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="freq for trie")
+    parser.add_argument('--file_path', type=str)
+    args = parser.parse_args()
+
+
     trie = TrieNode('',0)
-    for line in sys.stdin:
-        if 'q' == line.rstrip():
-            break
-        for word in line.strip().split():
-            trie.add(word)
+    if(args.file_path):
+        with open(args.file_path) as file:
+            for line in file:
+                 for word in line.strip().split():
+                    trie.add(word)
+    else:
+        for line in sys.stdin:
+            if 'q' == line.rstrip():
+             break
+            for word in line.strip().split():
+                trie.add(word)
     for k,v in trie:
         print(k,v)
     
