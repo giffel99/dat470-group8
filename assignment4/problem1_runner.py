@@ -9,8 +9,6 @@ if __name__ == '__main__':
         runner.run()
         for line in runner.cat_output():
             print(line.decode('utf-8'), end='')
-
-        #print(next(runner.cat_output()).decode('utf-8'), end='')
         
     end = time.time()
     print(end-start)
