@@ -32,9 +32,9 @@ def p(x):
    
     for i in range(1,33):
         if(x >= comp_value):
-            return i
+            return i & 0xff
         comp_value = comp_value >> 1 & 0xffffffff
-    return 0
+    return 0 & 0xff
 
 def set_alpha_m(m):
     if m == 16:
@@ -51,11 +51,11 @@ def hyperloglog_on_partition(partition, broadcast_A):
     l = 8
     m = 2**l
     alpha_m = set_alpha_m(m)
-    M = np.zeros(m)
+    M = np.zeros(m, dtype=np.uint8)
     for y in partition:
         M[f(y,l)] = max(M[f(y,l)],p(h(8,y,broadcast_A.value)))
 
-    harmonic_mean_M = 1 / sum([ 2** -bucket  for bucket in M])
+    harmonic_mean_M = 1 / sum([ 2** -bucket.astype(float)  for bucket in M])
     n_approx = alpha_m * m**2 * harmonic_mean_M
     v_0 = len([bucket for bucket in M if bucket == 0])
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     print(f'Total execution time is: {total_time}')
 
-# Execution times for 100 000 random numbers
+# Execution times for 100000 random numbers
 # Total execution time is: 13.93044662475586 (1 core)
 # Total execution time is: 10.718540668487549 (2 cpres)
 # Total execution time is: 8.37300419807434 (4 cores)
@@ -102,9 +102,9 @@ if __name__ == '__main__':
 # Total execution time is: 7.747605323791504 (16 cores)
 # Total execution time is: 8.63371753692627 (32 cores)
 
-# Execution times for 1 000 000 random numbers
+# Execution times for 1000000 random numbers
 # Total execution time is: 82.16899871826172 (1 core)
-# Total execution time is: 38.74206256866455 (2 cores)
+# Total execution time is: 38.74206256866455 (2 cpres)
 # Total execution time is: 23.30802869796753 (4 cores)
 # Total execution time is: 16.739031314849854 (8 cores)
 # Total execution time is: 13.05227255821228 (16 cores)
